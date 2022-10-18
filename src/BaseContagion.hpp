@@ -74,6 +74,11 @@ public:
         {return macro_state_vector_;}
     std::vector<Transmission> get_transmission_tree() const
         {return transmission_tree_;}
+    MacroState get_current_macro_state() const
+        {return std::make_tuple(current_time_,
+                                network_.size()-infected_node_set_.size()-recovered_node_set_(),
+                                infected_node_set_.size(),
+                                recovered_node_set_.size());}
 
     //Mutators
     void seed(unsigned int seed)

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Guillaume St-Onge
+ * Copyright (c) 2022 Guillaume St-Onge
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,8 @@
 
 using namespace std;
 
-namespace schon
-{//start of namespace schon
+namespace fastsir
+{//start of namespace fastsir
 
 //constructor of the class
 DiscreteSIR::DiscreteSIR(const EdgeList& edge_list, double recovery_probability,
@@ -67,35 +67,41 @@ DiscreteSIR::DiscreteSIR(const EdgeList& edge_list, double recovery_probability,
     infection_event_set_ = sset::SamplableSet<Node>(min,max); //set true bounds
 }
 
-/*
- * HERE
- */
-
-//update the group state and the infection propensity
-inline void DiscreteSIR::update_infection_propensity(Group group, Node node,
-        NodeState previous_state, NodeState new_state)
+//update the infection propensity of a neighbor node
+inline void DiscreteSIR::update_infection_propensity(Node node, const Event& event)
 {
-    GroupState & group_state = group_state_vector_[group];
-    size_t position = group_state_position_vector_[group][node];
-    //if node not in the back, put node in the back position
-    swap(group_state[previous_state][position],
-            group_state[previous_state].back());
-    //also update the position of the node in the back
-    Node back_node = group_state[previous_state][position];
-    group_state_position_vector_[group][back_node] = position;
-    //put node in new group state
-    group_state[previous_state].pop_back();
-    group_state_position_vector_[group][node] = group_state[new_state].size();
-    group_state[new_state].push_back(node);
+    Node other_node = event.first;
+    Action action = event.second;
+
+    vector<Node>& infected_neighbors = infected_neighbors_vector_[node];
+    unordered_map<Node,size_t>& infected_neighbor_position =  infected_neighbor_position_vector_[node];
+    if (action == RECOVERY)
+    {
+        //put other node in the back position if not already
+        size_t position [other_node];
+        swap(infected_neighbors[position],infected_neighbors.back());
+        //also, update the position of the node in the back
+        Node back_node infected_neighbors[position];
+        infected_neighbor_position[back_node] = position;
+        //pop
+        infected_neighbors.pop_back();
+        infected_neighbor_position.erase(other_node);
+    }
+    if (action == INFECTION)
+    {
+        infected_neighbor_position[other_node] = infected_neighbors.size();
+        infected_neighbors.push_back(other_node);
+    }
+
     //update event set with new propensity
-    double new_propensity = get_infection_propensity(group);
+    double new_propensity = get_infection_propensity(node);
     if (new_propensity > 0)
     {
-        infection_event_set_.set_weight(group,new_propensity);
+        infection_event_set_.set_weight(node,new_propensity);
     }
     else
     {
-        infection_event_set_.erase(group);
+        infection_event_set_.erase(node);
     }
 }
 
@@ -104,11 +110,13 @@ inline void DiscreteSIR::infect(Node node)
 {
     if (state_vector_[node] == S)
     {
+        infection_event_set_.erase(node);
         state_vector_[node] = I;
         infected_node_set_.insert(node);
-        for (Group group : network_.adjacent_groups(node))
+        Event event = make_pair(node,INFECTION);
+        for (Node neighbor : network_.adjacent_nodes(node))
         {
-            update_infection_propensity(group,node,S,I);
+            update_infection_propensity(neighbor, event);
         }
         //create a recovery event for the node
         recovery_event_set_.insert(node, 1.);
@@ -124,11 +132,13 @@ inline void DiscreteSIR::recover(Node node)
 {
     if (state_vector_[node] == I)
     {
-        state_vector_[node] = S;
+        state_vector_[node] = R;
         infected_node_set_.erase(node);
-        for (Group group : network_.adjacent_groups(node))
+        recovered_node_set_.insert(node);
+        Event event = make_pair(node,RECOVERY);
+        for (Node neighbor : network_.adjacent_nodes(node))
         {
-            update_infection_propensity(group,node,I,S);
+            update_infection_propensity(neighbor,event);
         }
         //erase the recovery event for the node
         recovery_event_set_.erase(node);
@@ -144,6 +154,9 @@ inline void DiscreteSIR::recover(Node node)
 inline void DiscreteSIR::next_step()
 {
     current_time_ = last_event_time_ + get_lifetime();
+    last_event_time_ = current_time_;
+
+    pair<Node,double> node_weight_pair;
     //get the number of recoveries and assign them
     poisson_dist_ = poisson_distribution<int>(
             recovery_propensity_*recovery_event_set_.size());
@@ -151,8 +164,7 @@ inline void DiscreteSIR::next_step()
     unordered_set<Node> new_susceptible; //use a set to discard repetition
     for (int i = 0; i < nb_rec; i++)
     {
-        pair<Node,double> node_weight_pair =
-            (recovery_event_set_.sample()).value();
+        node_weight_pair = (recovery_event_set_.sample()).value();
         new_susceptible.insert(node_weight_pair.first);
     }
     //get the number of infections and assign them
@@ -162,22 +174,20 @@ inline void DiscreteSIR::next_step()
     unordered_set<Node> new_infected;
     for (int i = 0; i < nb_inf; i++)
     {
-        pair<Group,double> group_weight_pair =
-            (infection_event_set_.sample()).value();
-        Group group = group_weight_pair.first;
-        //choose uniformly among susceptible
-        new_infected.insert(random_node(group, S));
+        node_weight_pair = (infection_event_set_.sample()).value();
+        new_infected.insert(node_weight_pair.first);
     }
-    //perform recovery and infections
+    //return vector of events
+    vector<Event> event_vector;
     for (Node node : new_susceptible)
     {
-        recover(node);
+        event_vector.emplace_back(node,RECOVERY);
     }
     for (Node node : new_infected)
     {
-        infect(node);
+        event_vector.emplace_back(node,INFECTION);
     }
-    last_event_time_ = current_time_;
+    return event_vector;
 }
 
 
@@ -193,4 +203,4 @@ void DiscreteSIR::clear()
 
 
 
-}//end of namespace schon
+}//end of namespace fastsir

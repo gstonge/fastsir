@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Guillaume St-Onge
+ * Copyright (c) 2022 Guillaume St-Onge
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,12 +61,11 @@ protected:
     inline double get_infection_propensity(Node node) const
         {return infection_propensity_[get_infected_degree(node)];}
 
-    //inline void update_infection_propensity(Group group, Node node,
-            //NodeState previous_state, NodeState new_state);
+    inline void update_infection_propensity(Node node, const Event& event);
 
     inline void infect(Node node);
     inline void recover(Node node);
-    inline void next_step();
+    inline std::vector<Event> next_step();
 };
 
 }//end of namespace fastsir

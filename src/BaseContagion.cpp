@@ -147,7 +147,9 @@ void BaseContagion::clear()
     {
         state_vector_[node] = S;
     }
-    recovered_node_set_.clear()
+    recovered_node_set_.clear();
+    //other clear
+    infection_generation_.clear();
 }
 
 //clear and reset the process to initial state at time 0 (and clear history)
@@ -155,21 +157,20 @@ void BaseContagion::clear()
 void BaseContagion::reset()
 {
     clear();
-    //clear transmission and macro state vector
-    transmission_tree_.clear();
+    //reset transmission tree and macro state vector
     macro_state_vector_.clear();
+    transmission_tree_.clear()
     current_time_ = 0;
     last_event_time_ = 0;
-    time_since_last_measure_ = 0;
 }
 
 //perform the evolution of the process over a period of time and perform
 //measures after each decorrelation time if needed
-void BaseContagion::evolve(double period, bool save_transmission_tree, bool save_macro_state)
+void BaseCBaseContagionlve(double period, bool save_transmission_tree, bool save_macro_state)
 {
     if (save_macro_state and macro_state_vector_.size() == 0)
-    {
-        store_current_macro_state();
+    {BasBaseContagion
+        store_curBaseContagionate();
     }
     double initial_time = current_time_;
 
