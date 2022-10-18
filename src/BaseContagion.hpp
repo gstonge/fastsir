@@ -26,6 +26,8 @@
 #define BASECONTAGION_HPP_
 
 #include "SamplableSet/SamplableSet.hpp"
+#include <unordered_set>
+#include <unordered_map>
 #include "Network.hpp"
 #include <iostream>
 
@@ -68,15 +70,15 @@ public:
         {return current_time_;}
     std::size_t get_number_of_infected_nodes() const
         {return infected_node_set_.size();}
-    InfectedDegree get_infected_degree(Node node)
-        {return infected_neighbors_vector_[node].size();}
+    InfectedDegree get_infected_degree(Node node) const
+        {return infected_neighbors_vector_.at(node).size();}
     std::vector<MacroState> get_macro_state_vector() const
         {return macro_state_vector_;}
     std::vector<Transmission> get_transmission_tree() const
         {return transmission_tree_;}
     MacroState get_current_macro_state() const
         {return std::make_tuple(current_time_,
-                                network_.size()-infected_node_set_.size()-recovered_node_set_(),
+                                network_.size()-infected_node_set_.size()-recovered_node_set_.size(),
                                 infected_node_set_.size(),
                                 recovered_node_set_.size());}
 
@@ -113,11 +115,15 @@ protected:
     Node random_infected_neighbor(Node node) const;
     inline void store_current_macro_state();
     inline void update_transmission_tree(const std::vector<Event>& event_vector);
+    inline void apply_events(const std::vector<Event>& event_vector);
 
-    virtual double get_lifetime() const = 0;
-    virtual void infect(Node node) = 0;
-    virtual void recover(Node node) = 0;
-    virtual void next_step() = 0;
+    //dummy functions because abstract virtual function breaks binding
+    virtual double get_lifetime() const
+        {return 1.;}
+    virtual void infect(Node node) {};
+    virtual void recover(Node node) {};
+    virtual std::vector<Event> next_step()
+        {return std::vector<Event>();}
 
 };
 

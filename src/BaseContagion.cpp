@@ -52,7 +52,7 @@ BaseContagion::BaseContagion(const EdgeList& edge_list):
 //get a random node of the particular state in the group
 Node BaseContagion::random_infected_neighbor(Node node) const
 {
-    unsigned int index = floor(random_01_(gen_)*infected_neighbors_vector_at(node).size());
+    unsigned int index = floor(random_01_(gen_)*infected_neighbors_vector_.at(node).size());
     return (infected_neighbors_vector_.at(node)).at(index);
 }
 
@@ -60,7 +60,7 @@ Node BaseContagion::random_infected_neighbor(Node node) const
 inline void BaseContagion::store_current_macro_state()
 {
 
-    macro_state_vector_.emplace_back(current_time_,network_.size()-infected_node_set_.size()-recovered_node_set_(),
+    macro_state_vector_.emplace_back(current_time_,network_.size()-infected_node_set_.size()-recovered_node_set_.size(),
             infected_node_set_.size(),recovered_node_set_.size());
 }
 
@@ -85,17 +85,17 @@ inline void BaseContagion::update_transmission_tree(const std::vector<Event>& ev
     }
 }
 
-inline void BaseContagion::apply_events(const vector<event>& event_vector)
+inline void BaseContagion::apply_events(const vector<Event>& event_vector)
 {
     for (const Event& event : event_vector)
     {
         Node node = event.first;
         Action action = event.second;
-        if (Action == INFECTION)
+        if (action == INFECTION)
         {
             infect(node);
         }
-        else if (Action == RECOVERY)
+        else if (action == RECOVERY)
         {
             recover(node);
         }
@@ -159,18 +159,18 @@ void BaseContagion::reset()
     clear();
     //reset transmission tree and macro state vector
     macro_state_vector_.clear();
-    transmission_tree_.clear()
+    transmission_tree_.clear();
     current_time_ = 0;
     last_event_time_ = 0;
 }
 
 //perform the evolution of the process over a period of time and perform
 //measures after each decorrelation time if needed
-void BaseCBaseContagionlve(double period, bool save_transmission_tree, bool save_macro_state)
+void BaseContagion::evolve(double period, bool save_transmission_tree, bool save_macro_state)
 {
     if (save_macro_state and macro_state_vector_.size() == 0)
-    {BasBaseContagion
-        store_curBaseContagionate();
+    {
+        store_current_macro_state();
     }
     double initial_time = current_time_;
 

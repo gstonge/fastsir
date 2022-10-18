@@ -78,10 +78,10 @@ inline void DiscreteSIR::update_infection_propensity(Node node, const Event& eve
     if (action == RECOVERY)
     {
         //put other node in the back position if not already
-        size_t position [other_node];
+        size_t position = infected_neighbor_position[other_node];
         swap(infected_neighbors[position],infected_neighbors.back());
         //also, update the position of the node in the back
-        Node back_node infected_neighbors[position];
+        Node back_node = infected_neighbors[position];
         infected_neighbor_position[back_node] = position;
         //pop
         infected_neighbors.pop_back();
@@ -151,7 +151,7 @@ inline void DiscreteSIR::recover(Node node)
 
 
 //advance the process to the next step by performing infection/recovery
-inline void DiscreteSIR::next_step()
+inline vector<Event> DiscreteSIR::next_step()
 {
     current_time_ = last_event_time_ + get_lifetime();
     last_event_time_ = current_time_;

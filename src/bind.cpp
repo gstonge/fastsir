@@ -52,7 +52,7 @@ PYBIND11_MODULE(fastsir, m)
             Returns the number of nodes.
             )pbdoc")
 
-        .def("get_state_vector", &BaseContagion::get_node_state_vector, R"pbdoc(
+        .def("get_state_vector", &BaseContagion::get_state_vector, R"pbdoc(
             Returns the vector of state for each node.
             )pbdoc")
 

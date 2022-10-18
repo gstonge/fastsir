@@ -59,7 +59,7 @@ protected:
 
     //utility functions
     inline double get_infection_propensity(Node node) const
-        {return infection_propensity_[get_infected_degree(node)];}
+        {return infection_propensity_.at(get_infected_degree(node));}
 
     inline void update_infection_propensity(Node node, const Event& event);
 
