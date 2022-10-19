@@ -48,7 +48,7 @@ The C++ classes are "exposed" to python using [pybind11](https://pybind11.readth
 ```
 
 One should not have to deal with the C++ side, just import the class in python using
-```
+```python
 from fastsir import DiscreteSIR as sir
 ```
 
@@ -61,7 +61,7 @@ as a function of the infected degree, (number of infected nodes in the neighborh
 
 Let's use the networkx package to get a graph
 
-```
+```python
 from fastsir import DiscreteSIR as sir
 import numpy as np
 import networkx as nx
@@ -77,7 +77,7 @@ edgelist = list(G.edges())
 
 For the contagion process, we use some arbitrary parameter. For the infection probability, we assume
 a "simple contagion"
-```
+```python
 #contagion parameters
 r = 0.01 #recovery probability
 q = 0.0015 #from the demo on phase transition, we know this is close to criticality
@@ -87,21 +87,21 @@ infection_probability = infection_func(np.arange(max_degree+1))
 ```
 
 Finally, or stochastic process is initialized like this
-```
+```python
 #initialize object
 process = sir(edgelist,recovery_probability,infection_probability)
 ```
 
 Now we need to infect a certain number of nodes initially at random. Here we use a single node, but
 more could be used. It must be a set.
-```
+```python
 initial_infected_nodes = {np.random.randint(N)}
 process.infect_node_set(initial_infected_nodes)
 ```
 
 Now to advance in time, we specify the `period` for which we want the process to evolve and call the
 method `evolve`:
-```
+```python
 period = 10
 process.evolve(period,save_transmission_tree=True,save_macro_state=True)
 ```
@@ -111,7 +111,7 @@ If we want to evolve until there are no more infected nodes---the process has di
 `period = np.inf`.
 
 After that, we can probe our process using various methods:
-```
+```python
 #get the current state of the network
 S,I,R = process.current_macro_state()
 
@@ -124,10 +124,10 @@ tree = process.get_transmission_tree()
 
 For more advanced usage, see the demos on transmission trees and phase transitions.
 Also, for a complete list of useful methods, do
-```
+```python
 help(sir)
 ```
 or
-```
+```python
 help(process)
 ```
