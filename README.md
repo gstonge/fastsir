@@ -21,9 +21,9 @@ or
 git clone https://github.com/gstonge/fastsir.git
 ```
 
-Second, use pip to install the module.
+Second, move to the directory of the project (`cd /path/to/project/`) then use pip to install the module.
 ```bash
-pip install ./SamplableSet
+pip install .
 ```
 It is recommended to perform the installation in a virtual environment.
 
