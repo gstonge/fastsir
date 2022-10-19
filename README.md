@@ -2,6 +2,13 @@
 
 Fast c++ implementation of simulations for nonlinear SIR model on networks
 
+## Requirements and dependencies
+
+* A compiler with C++17 support
+* `python3`
+* if not already installed, `pybind11` and `setuptool` will be installed in an isolated environment
+  to build the package.
+
 ## Installation
 
 First, clone this repository. If using SSH (recommended)
@@ -18,6 +25,7 @@ Second, use pip to install the module.
 ```bash
 pip install ./SamplableSet
 ```
+It is recommended to perform the installation in a virtual environment.
 
 ## A peak under the hood
 
