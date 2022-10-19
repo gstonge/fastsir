@@ -104,7 +104,7 @@ PYBIND11_MODULE(fastsir, m)
                save_transmission_tree: keep track of transmission
                save_macro_state: keep track of the macro state
             )pbdoc", py::arg("period"), py::arg("save_transmission_tree")=true,
-                py::arg("save_macro_state")=false)
+                py::arg("save_macro_state")=true)
         ;
 
 
@@ -129,6 +129,20 @@ PYBIND11_MODULE(fastsir, m)
 
         .def("get_lifetime", &DiscreteSIR::get_lifetime, R"pbdoc(
             Returns the lifetime for the current state.
-            )pbdoc");
+            )pbdoc")
+
+        .def("get_current_macro_state", &DiscreteSIR::get_current_macro_state, R"pbdoc(
+            Returns the current macro state
+            )pbdoc")
+
+        .def("get_transmission_tree", &DiscreteSIR::get_transmission_tree, R"pbdoc(
+            Returns the transmission tree
+            )pbdoc")
+
+        .def("get_macro_state_vector", &DiscreteSIR::get_macro_state_vector, R"pbdoc(
+            Returns the vector of macro states
+            )pbdoc")
+
+        ;
 
 }

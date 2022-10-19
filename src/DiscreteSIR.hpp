@@ -50,12 +50,12 @@ public:
 protected:
     //Members
     double recovery_probability_;
-    double recovery_propensity_;
     std::vector<double> infection_probability_; //per node in group
     std::vector<double> infection_propensity_; //Poisson rate equiv
     sset::SamplableSet<Node> infection_event_set_;
     sset::SamplableSet<Node> recovery_event_set_;
     std::poisson_distribution<int> poisson_dist_;
+    std::binomial_distribution<int> binomial_dist_;
 
     //utility functions
     inline double get_infection_propensity(Node node) const

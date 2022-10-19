@@ -40,12 +40,12 @@ DiscreteSIR::DiscreteSIR(const EdgeList& edge_list, double recovery_probability,
         const std::vector<double>& infection_probability):
     BaseContagion(edge_list),
     recovery_probability_(recovery_probability),
-    recovery_propensity_(-log(1-recovery_probability)),
     infection_probability_(infection_probability),
-    infection_propensity_(infection_probability.size(),0.),
+    infection_propensity_(),
     infection_event_set_(1.,1.),
     recovery_event_set_(1.,1.),
-    poisson_dist_(1.)
+    poisson_dist_(1.),
+    binomial_dist_(1,recovery_probability)
 {
     //calculate Poisson rate equivalent for each probability
     double min = std::numeric_limits<double>::infinity();
@@ -53,7 +53,7 @@ DiscreteSIR::DiscreteSIR(const EdgeList& edge_list, double recovery_probability,
     double propensity = 0;
     for (double prob : infection_probability)
     {
-        propensity = -log(1-prob);
+        propensity = -log(1.-prob);
         infection_propensity_.push_back(propensity);
         if (propensity > max)
         {
@@ -77,21 +77,30 @@ inline void DiscreteSIR::update_infection_propensity(Node node, const Event& eve
     unordered_map<Node,size_t>& infected_neighbor_position =  infected_neighbor_position_vector_[node];
     if (action == RECOVERY)
     {
+        //cout << "========start RECOVERY========" << endl;
         //put other node in the back position if not already
+        //cout << "before CRIT" << endl;
         size_t position = infected_neighbor_position[other_node];
+
+        //cout << "after CRIT" << endl;
+        //cout << "position " << position << endl;
+        //cout << "size " << infected_neighbors.size() << endl;
         swap(infected_neighbors[position],infected_neighbors.back());
+        //cout << "after swap" << endl;
         //also, update the position of the node in the back
         Node back_node = infected_neighbors[position];
         infected_neighbor_position[back_node] = position;
         //pop
         infected_neighbors.pop_back();
         infected_neighbor_position.erase(other_node);
+        //cout << "========end RECOVERY=========" << endl;
     }
-    if (action == INFECTION)
+    else if (action == INFECTION)
     {
         infected_neighbor_position[other_node] = infected_neighbors.size();
         infected_neighbors.push_back(other_node);
     }
+
 
     //update event set with new propensity
     double new_propensity = get_infection_propensity(node);
@@ -116,7 +125,10 @@ inline void DiscreteSIR::infect(Node node)
         Event event = make_pair(node,INFECTION);
         for (Node neighbor : network_.adjacent_nodes(node))
         {
-            update_infection_propensity(neighbor, event);
+            if (state_vector_[neighbor] == S)
+            {
+                update_infection_propensity(neighbor, event);
+            }
         }
         //create a recovery event for the node
         recovery_event_set_.insert(node, 1.);
@@ -136,10 +148,15 @@ inline void DiscreteSIR::recover(Node node)
         infected_node_set_.erase(node);
         recovered_node_set_.insert(node);
         Event event = make_pair(node,RECOVERY);
+        //cout << "before update" << endl;
         for (Node neighbor : network_.adjacent_nodes(node))
         {
-            update_infection_propensity(neighbor,event);
+            if (state_vector_[neighbor] == S)
+            {
+                update_infection_propensity(neighbor, event);
+            }
         }
+        //cout << "after update" << endl;
         //erase the recovery event for the node
         recovery_event_set_.erase(node);
     }
@@ -158,16 +175,20 @@ inline vector<Event> DiscreteSIR::next_step()
 
     pair<Node,double> node_weight_pair;
     //get the number of recoveries and assign them
-    poisson_dist_ = poisson_distribution<int>(
-            recovery_propensity_*recovery_event_set_.size());
-    int nb_rec = poisson_dist_(gen_);
+    //cout << "before sampling new recovered"  << endl;
+    binomial_dist_ = binomial_distribution<int>(
+            recovery_event_set_.size(),recovery_probability_);
+    int nb_rec = binomial_dist_(gen_);
     unordered_set<Node> new_susceptible; //use a set to discard repetition
     for (int i = 0; i < nb_rec; i++)
     {
         node_weight_pair = (recovery_event_set_.sample()).value();
         new_susceptible.insert(node_weight_pair.first);
     }
+    //cout << "after sampling new recovered" << endl;
+
     //get the number of infections and assign them
+    //cout << "before sampling new infected"  << endl;
     poisson_dist_ = poisson_distribution<int>(
             infection_event_set_.total_weight());
     int nb_inf = poisson_dist_(gen_);
@@ -177,6 +198,8 @@ inline vector<Event> DiscreteSIR::next_step()
         node_weight_pair = (infection_event_set_.sample()).value();
         new_infected.insert(node_weight_pair.first);
     }
+    //cout << "after sampling new infected"  << endl;
+
     //return vector of events
     vector<Event> event_vector;
     for (Node node : new_susceptible)
