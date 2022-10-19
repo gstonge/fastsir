@@ -94,15 +94,11 @@ inline void BaseContagion::apply_events(const vector<Event>& event_vector)
         Action action = event.second;
         if (action == INFECTION)
         {
-            //cout << "before infect node" << endl;
             infect(node);
-            //cout << "after infect node" << endl;
         }
         else if (action == RECOVERY)
         {
-            //cout << "before recover node" << endl;
             recover(node);
-            //cout << "after recover node" << endl;
         }
     }
 }
@@ -143,7 +139,8 @@ void BaseContagion::infect_node_set(const std::unordered_set<Node>& node_set)
 void BaseContagion::clear()
 {
     //recover nodes
-    for (Node node : infected_node_set_)
+    unordered_set<Node> infected_node_set_copy = infected_node_set_;
+    for (Node node : infected_node_set_copy)
     {
         recover(node);
     }
@@ -182,26 +179,18 @@ void BaseContagion::evolve(double period, bool save_transmission_tree, bool save
     vector<Event> event_vector;
     while((last_event_time_ + get_lifetime() - initial_time <= period) and isfinite(get_lifetime()))
     {
-        //cout << "before next step" << endl;
         event_vector = next_step();
-        //cout << "after next step" << endl;
         //save transmission tree
-        //cout << "before update transmission tree" << endl;
         if (save_transmission_tree and event_vector.size() > 0)
         {
             update_transmission_tree(event_vector);
         }
-        //cout << "after update transmission tree" << endl;
-        //cout << "before apply events" << endl;
         apply_events(event_vector);
-        //cout << "after apply events" << endl;
         //store macro state
-        //cout << "before save macro" << endl;
         if (save_macro_state)
         {
             store_current_macro_state();
         }
-        //cout << "after save macro" << endl;
     }
     current_time_ = initial_time + period;
 }

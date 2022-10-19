@@ -88,7 +88,7 @@ public:
     void infect_fraction(double fraction);
     void infect_node_set(const std::unordered_set<Node>& node_set);
 
-    void clear();
+    virtual void clear();
     void reset();
 
     void evolve(double period, bool save_transmission_tree, bool save_macro_state);
