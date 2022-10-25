@@ -113,7 +113,7 @@ If we want to evolve until there are no more infected nodes---the process has di
 After that, we can probe our process using various methods:
 ```python
 #get the current state of the network
-S,I,R = process.current_macro_state()
+S,I,R = process.get_current_macro_state()
 
 #get the vector of macro state at each time step
 macro_state_vector = process.get_macro_state_vector()
