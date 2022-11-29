@@ -53,6 +53,10 @@ DiscreteSIR::DiscreteSIR(const EdgeList& edge_list, double recovery_probability,
     double propensity = 0;
     for (double prob : infection_probability)
     {
+        if (prob >= 1.)
+        {
+            throw runtime_error("Probability of infection too high (>=1)");
+        }
         propensity = -log(1.-prob);
         infection_propensity_.push_back(propensity);
         if (propensity > max)
