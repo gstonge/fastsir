@@ -26,6 +26,7 @@
 #include <pybind11/stl.h>
 #include <BaseContagion.hpp>
 #include <DiscreteSIR.hpp>
+#include <ContinuousSIR.hpp>
 
 using namespace std;
 using namespace fastsir;
@@ -142,7 +143,39 @@ PYBIND11_MODULE(fastsir, m)
         .def("get_macro_state_vector", &DiscreteSIR::get_macro_state_vector, R"pbdoc(
             Returns the vector of macro states
             )pbdoc")
-
         ;
+
+    py::class_<ContinuousSIR, BaseContagion>(m, "ContinuousSIR")
+
+        .def(py::init<EdgeList, double,std::vector<double>>(), R"pbdoc(
+            Default constructor of the class ContinuousSIR
+
+            Args:
+               edge_list: Edge list for the network structure.
+               recovery_rate: Double for the recovery rate
+               infection_rate: vector for the infection
+                                      rate for different infected
+                                      degree.
+            )pbdoc", py::arg("edge_list"),
+                py::arg("recovery_rate"),
+                py::arg("infection_rate"))
+
+        .def("get_lifetime", &ContinuousSIR::get_lifetime, R"pbdoc(
+            Returns the lifetime for the current state.
+            )pbdoc")
+
+        .def("get_current_macro_state", &ContinuousSIR::get_current_macro_state, R"pbdoc(
+            Returns the current macro state
+            )pbdoc")
+
+        .def("get_transmission_tree", &ContinuousSIR::get_transmission_tree, R"pbdoc(
+            Returns the transmission tree
+            )pbdoc")
+
+        .def("get_macro_state_vector", &ContinuousSIR::get_macro_state_vector, R"pbdoc(
+            Returns the vector of macro states
+            )pbdoc")
+        ;
+
 
 }
