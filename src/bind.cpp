@@ -27,6 +27,7 @@
 #include <BaseContagion.hpp>
 #include <DiscreteSIR.hpp>
 #include <ContinuousSIR.hpp>
+#include <AnnealedContinuousSIR.hpp>
 
 using namespace std;
 using namespace fastsir;
@@ -177,5 +178,39 @@ PYBIND11_MODULE(fastsir, m)
             )pbdoc")
         ;
 
+
+    py::class_<AnnealedContinuousSIR, BaseContagion>(m, "AnnealedContinuousSIR")
+
+        .def(py::init<int, int, double, std::vector<double>>(), R"pbdoc(
+            Default constructor of the class AnnealedContinuousSIR
+
+            Args:
+               number_of_nodes: Number of nodes
+               degree: Homogeneous degree
+               recovery_rate: Double for the recovery rate
+               infection_rate: vector for the infection
+                                      rate for different infected
+                                      degree.
+            )pbdoc", py::arg("number_of_nodes"),
+                py::arg("degree"),
+                py::arg("recovery_rate"),
+                py::arg("infection_rate"))
+
+        .def("get_lifetime", &AnnealedContinuousSIR::get_lifetime, R"pbdoc(
+            Returns the lifetime for the current state.
+            )pbdoc")
+
+        .def("get_current_macro_state", &AnnealedContinuousSIR::get_current_macro_state, R"pbdoc(
+            Returns the current macro state
+            )pbdoc")
+
+        .def("get_transmission_tree", &AnnealedContinuousSIR::get_transmission_tree, R"pbdoc(
+            Returns the transmission tree
+            )pbdoc")
+
+        .def("get_macro_state_vector", &AnnealedContinuousSIR::get_macro_state_vector, R"pbdoc(
+            Returns the vector of macro states
+            )pbdoc")
+        ;
 
 }
